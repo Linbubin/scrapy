@@ -88,7 +88,6 @@ def getdetial(num):
 
         myfollowees = session.post(url,data=data,headers=followees_headers)
         guanzhu_text = myfollowees.text
-        print guanzhu_text
         for json_load in json.loads(guanzhu_text)['msg']:
             xinxi = re.findall('class="zg-link-gray-normal">(.*?)<', json_load, re.S)
             print u'姓名:' + re.findall('<a title="(.*?)"',json_load,re.S)[0]
@@ -100,7 +99,40 @@ def getdetial(num):
             print u'赞同:' + xinxi[2]
             time.sleep(1)
 
+def patu(url,nums):
+    answer_headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36',
+        'Referer': 'https://www.zhihu.com/question/37709992',
+        'Origin': 'https://www.zhihu.com',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept': '* / *'
+
+    }
+    for num in nums:
+        data = {
+            'method': 'next',
+            'params': '{"url_token":37709992,"pagesize":10,"offset":'+ '%d' % (num*10) +'}',
+            '_xsrf': str(get_xsrf())
+        }
+
+        answers = session.post('https://www.zhihu.com/node/QuestionAnswerListV2',headers=answer_headers,data=data)
+        dic = json.loads(answers.text)
+
+        for i in dic['msg']:
+            count = 0
+
+            name = re.findall('ata-author-name=\\"(.*?)\\" ',i)
+            os.mkdir(name[0])
+            imgs = re.findall('data-actualsrc=\\"https:(.*?)"',i,re.S)
+            for img in imgs:
+                count += 1
+                r = session.get('https:' + img, headers=headers)
+                with open(os.path.join(name[0],'%d.jpg'% count), 'wb') as f:
+                    f.write(r.content)
 
 if __name__ == '__main__':
     login('835656yy!!','18757781776')
-    getdetial(168)
+    # 查询几个自己的关注ID
+    # getdetial(168)
+    #要爬取几页的妹子图(1页10个ID)
+    patu('https://www.zhihu.com/question/37709992',10)
